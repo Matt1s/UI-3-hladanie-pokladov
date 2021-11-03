@@ -64,19 +64,50 @@ class Generation():
     entities = []
 
 class Entity():
-    genome = []
-    fitness = 0
+    def __init__(self):
+        self.genome = []
+        self.fitness = 0
+        self.prints = []
+
+    def addDirection(self,bits):
+        direction = ""
+        if(bits == '00'):
+            direction = "H"
+        elif(bits == '01'):
+            direction = "D"
+        elif(bits == '10'):
+            direction = "P"
+        elif(bits == '11'):
+            direction = "L"
+        self.prints.append(direction)
+
+
+def VM(index, entity):
+    i = 0
+    for gene in entity.genome:
+        #print("Jedinec:",index,"gén:",i,"inštrukcia",gene[0:2])
+
+        instruction = gene[:2]
+        if(instruction == '11'): # Instruction PRINT
+            print(i, gene)
+            direction = gene[-2:]
+            entity.addDirection(direction)
+            
+        i+=1
+    print(entity.prints)
+
+    
+
 
 # Generating initial population
 for count in range(N_IN_GENERATION):
     # Generating entity
     entity = Entity()
+    entity.genome = []
     for i in range(64):
-
         # Generating random gene from 0 to 255
         gene_int = randint(0,255)
         gene_bin = bin(gene_int)[2:].zfill(8)
-        print(gene_bin)
 
         # Adding genome to entity
         entity.genome.append(gene_bin)
@@ -84,7 +115,9 @@ for count in range(N_IN_GENERATION):
     # Adding entity into generation
     generation.append(entity)
 
-print("Počet generácií: ",len(generation))
+print("Počet jedincov v generácii: ",len(generation))
+index = 0
 for entity in generation:
-    print("Dĺžka jedinca:", len(entity))
+    VM(index, entity)
+    index += 1
 
