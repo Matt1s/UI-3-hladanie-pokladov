@@ -7,7 +7,10 @@ start_x = 0
 start_y = 0
 treasures = []
 
-VM = []
+# Number of entities in single generation
+N_IN_GENERATION = 100
+
+generation = []
 
 
 
@@ -57,22 +60,31 @@ print("Štart:",start_x, start_y)
 print("Počet pokladov:", len(treasures))
 print("Poklady:",treasures)
 
-for i in range(64):
-    chromosome = ["0","0","0","0","0","0","0","0"]
-    random_instruction = randint(0,3)
-    if(random_instruction == 0):
-        chromosome[0] = '0'
-        chromosome[1] = '0'
-    if(random_instruction == 1):
-        chromosome[0] = '0'
-        chromosome[1] = '1'
-    if(random_instruction == 2):
-        chromosome[0] = '1'
-        chromosome[1] = '0'
-    if(random_instruction == 3):
-        chromosome[0] = '1'
-        chromosome[1] = '1'
-    VM.append(''.join(chromosome))
-    print(VM[i])
-print(len(VM))
+class Generation():
+    entities = []
+
+class Entity():
+    genome = []
+    fitness = 0
+
+# Generating initial population
+for count in range(N_IN_GENERATION):
+    # Generating entity
+    entity = Entity()
+    for i in range(64):
+
+        # Generating random gene from 0 to 255
+        gene_int = randint(0,255)
+        gene_bin = bin(gene_int)[2:].zfill(8)
+        print(gene_bin)
+
+        # Adding genome to entity
+        entity.genome.append(gene_bin)
+
+    # Adding entity into generation
+    generation.append(entity)
+
+print("Počet generácií: ",len(generation))
+for entity in generation:
+    print("Dĺžka jedinca:", len(entity))
 
