@@ -9,21 +9,22 @@ treasures = []
 
 # Number of entities in single generation
 N_IN_GENERATION = 100
+MAX_INSTRUCTIONS = 500
 
 generation = []
 
+start_pos = [0,0]
 
 
 # Function to read input from files
 def read_file(route):
-    global grid_x, grid_y, start_x, start_y, treasures
+    global grid_x, grid_y, start_x, start_y, treasures, start_pos
     # Read-only open
     f = open(route, "r")
 
     line_index = 0
 
     grid_size = ""
-    start_pos = ""
 
     # Reading lines from files
     for line in f:
@@ -45,11 +46,11 @@ def read_file(route):
         line_index += 1
 
     # Initializing global variables
-    grid_x = grid_size[0]
-    grid_y = grid_size[1]
+    grid_x = int(grid_size[0])
+    grid_y = int(grid_size[1])
 
-    start_x = start_pos[0]
-    start_y = start_pos[1]
+    start_x = int(start_pos[0])
+    start_y = int(start_pos[1])
 
     # Closing files
     f.close()
@@ -84,17 +85,106 @@ class Entity():
 
 def VM(index, entity):
     i = 0
-    for gene in entity.genome:
+    for i in range(len(entity.genome)):
+
+        if(MAX_INSTRUCTIONS > 500):
+            print("Too many instructions!")
+            return
         #print("Jedinec:",index,"gén:",i,"inštrukcia",gene[0:2])
 
-        instruction = gene[:2]
+        instruction = entity.genome[i][:2]
+        if(instruction == '00'):
+            # Increment
+            print("INCREMENT")
+            improved_gene = bin(int(entity.genome[i],2) + 1)[2:].zfill(8)
+        if(instruction == '00'):
+            # Decrement
+            print(entity.genome[i])
+            print("DECREMENT")
+            improved_gene = bin(int(entity.genome[i],2) - 1)[2:].zfill(8)
+            print(improved_gene)
+        if(instruction == '01'):
+            print("JUMP")
+            # Jump on next gene
+            print(entity.genome[i])
+            # Get last 6 characters from variable gene
+            jump_gene = int(entity.genome[i][-6:])
+            i = jump_gene
+            print(jump_gene)
+            break
         if(instruction == '11'): # Instruction PRINT
-            print(i, gene)
-            direction = gene[-2:]
+            #print(i, entity.genome[i])
+            print("PRINT")
+            direction = entity.genome[i][-2:]
             entity.addDirection(direction)
-            
         i+=1
-    print(entity.prints)
+    #print(entity.prints)
+
+found_treasures = []
+
+def checkTreasure(entity):
+    global treasures
+    for treasure in treasures:
+        if(start_x == treasure[0] and start_y == treasure[1]):
+            for found_treasure in found_treasures:
+                if(found_treasure == treasure):
+                    return False
+            print("Treasure found!", treasure)
+            found_treasures.append([treasure[0], treasure[1]])
+            entity.fitness += 1
+            return True
+    return False
+
+def movePlayer(direction):
+    global start_x, start_y
+    if(direction == "H"):
+        if(start_y == 0):
+            return False
+        else:
+            start_y -= 1
+
+    elif(direction == "D"):
+        if(start_y == grid_y-1):
+            return False
+        else:
+            start_y += 1
+
+    elif(direction == "P"):
+        if(start_x == 0):
+            return False
+        else:
+            start_x -= 1
+
+    elif(direction == "L"):
+        if(start_x == grid_x-1):
+            return False
+        else:
+            start_x += 1
+    else:
+        print("Error")
+    
+def rateEntity(entity):
+    global start_x, start_y, start_pos
+    moves = entity.prints
+    for move in moves:
+        if(move == "H"):
+            movePlayer("H")
+        elif(move == "D"):
+            movePlayer("D")
+        elif(move == "P"):
+            movePlayer("P")
+        elif(move == "L"):
+            movePlayer("L")
+        else:
+            print("Error")
+        checkTreasure(entity)
+    if(len(found_treasures) == len(treasures)):
+        # This entity is the winner
+        return True
+    else:
+        found_treasures.clear()
+        start_x = int(start_pos[0])
+        start_y = int(start_pos[1])
 
     
 
@@ -120,4 +210,5 @@ index = 0
 for entity in generation:
     VM(index, entity)
     index += 1
-
+    rateEntity(entity)
+    print("Jedinec:",i,"Fitness:", entity.fitness)
