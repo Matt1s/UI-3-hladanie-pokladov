@@ -13,13 +13,13 @@ N_IN_GENERATION = 100
 MAX_INSTRUCTIONS = 500
 
 # Number of max possible generations
-MAX_GENERATIONS = 1000
+MAX_GENERATIONS = 100000
 
 # Mutation rate in percent
-MUTATION_RATE = 1
+MUTATION_RATE = 2
 
-N_ELITES = 10
-N_PARENTS = 50
+N_ELITES = 20
+N_PARENTS = 60
 
 generation = []
 
@@ -45,8 +45,6 @@ def read_file(route):
         elif(line_index == 1):
             # Player initial position
             start_pos = line.split(" ")
-        elif(line_index == 2):
-            pass
         else:
             # Location of treasures
             treasure_location = line.split(" ")
@@ -103,14 +101,20 @@ def VM(entity):
         if(instruction == '00'):
             # Increment
             #print("INCREMENT")
-            improved_gene = bin(int(entity.genome[i],2) + 1)[2:].zfill(8)
-            entity.genome[i] = improved_gene
+            if(int(entity.genome[i]) == 255):
+                entity.genome[i] = '00000000'
+                print("Increment overflow!")
+            else:
+                entity.genome[i] = bin(int(entity.genome[i],2) + 1)[2:].zfill(8)
         if(instruction == '00'):
             # Decrement
             #print(entity.genome[i])
             #print("DECREMENT")
-            improved_gene = bin(int(entity.genome[i],2) - 1)[2:].zfill(8)
-            entity.genome[i] = improved_gene
+            if(bin(int(entity.genome[i],2)) == 0):
+                entity.genome[i] = '11111111'
+                print("Decrement overflow!")
+            else:
+                entity.genome[i] = bin(int(entity.genome[i],2) - 1)[2:].zfill(8)
             #print(improved_gene)
         if(instruction == '01'):
             #print("JUMP")
@@ -172,24 +176,17 @@ def movePlayer(direction):
             start_x += 1
     else:
         print("Error")
+    return True
     #print(direction)
     #print(start_x,start_y)
     
 def rateEntity(entity):
     global start_x, start_y, start_pos
     moves = entity.prints
-    possible_moves = ["H","D","P","L"]
+
     for move in moves:
-        if(move == "H"):
-            movePlayer("H")
-        elif(move == "D"):
-            movePlayer("D")
-        elif(move == "P"):
-            movePlayer("P")
-        elif(move == "L"):
-            movePlayer("L")
-        else:
-            print("Error")
+        if(not movePlayer(move)):
+            return False
         checkTreasure(entity)
     if(len(found_treasures) == len(treasures)):
         # This entity is the winner
@@ -312,12 +309,15 @@ def newGeneration():
         if(entity.fitness > best_entity.fitness):
             best_entity = entity
             if(best_entity.fitness == len(treasures)):
+                print(str(gen_number) + ". generácia")
+                print("Best entity fitness:", best_entity.fitness)
                 print("WINNER")
                 print(best_entity.prints)
                 return True
 
 for i in range(MAX_GENERATIONS):
-
+    if(i % 100 == 0):
+        print(str(gen_number) + ". generácia")
     if(best_entity.fitness > curr_best_fitness):
             curr_best_fitness = best_entity.fitness
 
