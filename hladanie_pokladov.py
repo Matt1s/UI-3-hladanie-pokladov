@@ -315,26 +315,6 @@ def crossGeneration(old_generation):
         # Adding child to new generation
         new_generation.append(child)
 
-    '''for i in range(N_IN_GENERATION - N_ELITES - NEW_ENTITIES_COUNT):
-        parent1 = parents[randint(0,N_PARENTS-1)]
-        parent2 = parents[randint(0,N_PARENTS-1)]
-        child = Entity()
-
-        #print("PRINTS: ",child.prints)
-        for i in range(len(parent1.genome)):
-            if(randint(0,1) == 1):
-                child.genome.append(parent1.genome[i])
-            else:
-                child.genome.append(parent2.genome[i])
-
-            #mutate child gene with propability MUTATION_RATE in percent
-            if(randint(0,100) < MUTATION_RATE):
-                #print("Mutated!")
-                child.genome[i] = bin(randint(0,255))[2:].zfill(8)
-
-        #print("Crossing: ",parent1.fitness,"+",parent2.fitness)
-        new_generation.append(child)'''
-
     return new_generation
 
 def spawn():
