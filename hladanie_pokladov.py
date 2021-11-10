@@ -13,13 +13,14 @@ N_IN_GENERATION = 100
 MAX_INSTRUCTIONS = 500
 
 # Number of max possible generations
-MAX_GENERATIONS = 100000
+MAX_GENERATIONS = 15000
 
 # Mutation rate in percent
 MUTATION_RATE = 2
 
 N_ELITES = 20
 N_PARENTS = 60
+NEW_ENTITIES_COUNT = 10
 
 generation = []
 
@@ -146,6 +147,7 @@ def checkTreasure(entity):
             #print("Treasure found!", treasure)
             found_treasures.append([treasure[0], treasure[1]])
             entity.fitness += 1
+            
             return True
     return False
 
@@ -249,7 +251,7 @@ def crossGeneration(old_generation):
 
     new_generation = []
 
-    for i in range(N_IN_GENERATION - N_ELITES):
+    for i in range(N_IN_GENERATION - N_ELITES - NEW_ENTITIES_COUNT):
         parent1 = parents[randint(0,N_PARENTS-1)]
         parent2 = parents[randint(0,N_PARENTS-1)]
         child = Entity()
@@ -271,6 +273,22 @@ def crossGeneration(old_generation):
 
     return new_generation
 
+def spawn():
+    new_entities = []
+    for i in range(NEW_ENTITIES_COUNT):
+        new_entity = Entity()
+        new_entity.fitness = 0
+        new_entity.prints = []
+        new_entity.genome = []
+        for j in range(64):
+            # Generating random gene from 0 to 255
+            gene_int = randint(0,255)
+            gene_bin = bin(gene_int)[2:].zfill(8)
+
+            # Adding genome to entity
+            new_entity.genome.append(gene_bin)
+        new_entities.append(new_entity)
+    return new_entities
 
 gen_number = 0
 curr_best_fitness = 0
@@ -291,9 +309,11 @@ def newGeneration():
         new_generation = pickElites(generation)
         new_children = (crossGeneration(generation))
 
+        spawned_entities = spawn()
         generation = new_generation
 
         generation.extend(new_children)
+        generation.extend(spawned_entities)
         #print("Počet jedincov v generácii: ",len(generation))
 
 
