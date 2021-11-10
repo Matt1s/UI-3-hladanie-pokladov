@@ -1,5 +1,6 @@
 from random import randint
 import time
+import math
 
 # Declaring variables
 grid_x = 0
@@ -13,14 +14,18 @@ N_IN_GENERATION = 100
 MAX_INSTRUCTIONS = 500
 
 # Number of max possible generations
-MAX_GENERATIONS = 15000
+MAX_GENERATIONS = 10000
 
 # Mutation rate in percent
 MUTATION_RATE = 2
 
+# Setting contants for genetic algorithm
 N_ELITES = 20
 N_PARENTS = 60
 NEW_ENTITIES_COUNT = 10
+
+# Coutn number of steps in order to calculate fitness - not working better though
+COUNT_STEPS = False
 
 generation = []
 
@@ -93,45 +98,37 @@ def VM(entity):
     i = 0
     for i in range(len(entity.genome)):
 
+        # Caring for loop in VM
         if(i > MAX_INSTRUCTIONS):
             print("Too many instructions!")
             return
-        #print("Jedinec:",index,"gén:",i,"inštrukcia",gene[0:2])
 
         instruction = entity.genome[i][:2]
         if(instruction == '00'):
             # Increment
-            #print("INCREMENT")
             if(int(entity.genome[i]) == 255):
                 entity.genome[i] = '00000000'
                 print("Increment overflow!")
             else:
                 entity.genome[i] = bin(int(entity.genome[i],2) + 1)[2:].zfill(8)
+
         if(instruction == '00'):
             # Decrement
-            #print(entity.genome[i])
-            #print("DECREMENT")
             if(bin(int(entity.genome[i],2)) == 0):
                 entity.genome[i] = '11111111'
                 print("Decrement overflow!")
             else:
                 entity.genome[i] = bin(int(entity.genome[i],2) - 1)[2:].zfill(8)
-            #print(improved_gene)
+                
         if(instruction == '01'):
-            #print("JUMP")
-            # Jump on next gene
-            #print(entity.genome[i])
             # Get last 6 characters from variable gene
             jump_gene = int(entity.genome[i][-6:])
             i = jump_gene
-            #print(jump_gene)
             break
+
         if(instruction == '11'): # Instruction PRINT
-            #print(i, entity.genome[i])
-            #print("PRINT")
             direction = entity.genome[i][-2:]
             entity.addDirection(direction)
-    #print(entity.prints)
 
         i+=1
 
@@ -140,19 +137,32 @@ found_treasures = []
 def checkTreasure(entity):
     global treasures
     for treasure in treasures:
+        # Looping through treasures
         if(start_x == treasure[0] and start_y == treasure[1]):
+            # Treasure found
             for found_treasure in found_treasures:
+                # If this treasure was found before
                 if(found_treasure == treasure):
                     return False
-            #print("Treasure found!", treasure)
+
+            # Adding to found treasures
             found_treasures.append([treasure[0], treasure[1]])
             entity.fitness += 1
+
+            # Calculating fitness of entity based on found treasures and steps
+            if(COUNT_STEPS):
+                entity.fitness += 0.01
+                entity.fitness -= 0.0001 * len(entity.prints)
+                # Round fitness to 4 decimal places
+                entity.fitness = round(entity.fitness, 4)
             
             return True
     return False
 
 def movePlayer(direction):
     global start_x, start_y
+
+    # Moving player in given direction
     if(direction == "H"):
         if(start_y == 0):
             return False
@@ -179,13 +189,14 @@ def movePlayer(direction):
     else:
         print("Error")
     return True
-    #print(direction)
-    #print(start_x,start_y)
     
 def rateEntity(entity):
     global start_x, start_y, start_pos
+
+    # Getting player moves 
     moves = entity.prints
 
+    # Calculating fitness of entity based on found treasures and steps
     for move in moves:
         if(not movePlayer(move)):
             return False
@@ -194,6 +205,7 @@ def rateEntity(entity):
         # This entity is the winner
         return True
     else:
+        # This entity is not the winner
         found_treasures.clear()
         start_x = int(start_pos[0])
         start_y = int(start_pos[1])
@@ -247,11 +259,63 @@ def pickParents(old_generation):
     return parents
 
 def crossGeneration(old_generation):
+    # Selecting parents
     parents = pickParents(old_generation)
 
     new_generation = []
 
+
+    # Crossing parents
     for i in range(N_IN_GENERATION - N_ELITES - NEW_ENTITIES_COUNT):
+
+        tournament_winners = []
+
+        # Selecting random parents through tournament
+        for i in range(2):
+
+            # pick 4 random parents and put then into tournament
+            tournament = []
+            for j in range(4):
+                tournament.append(parents[randint(0,N_PARENTS-1)])
+            
+            # Sorting tournament by fitness
+            if(tournament[0].fitness > tournament[1].fitness):
+                finalist1 = tournament[0]
+            else:
+                finalist1 = tournament[1]
+            
+            # Selecting best entity from tournament
+            if(tournament[2].fitness > tournament[3].fitness):
+                finalist2 = tournament[2]
+            else:
+                finalist2 = tournament[3]
+
+            # Pick tournament winner
+            if(finalist1.fitness > finalist2.fitness):
+                tournament_winners.append(finalist1)
+            else:
+                tournament_winners.append(finalist2)
+                
+        # Crossing parents
+        parent1 = tournament_winners[0]
+        parent2 = tournament_winners[1]
+        child = Entity()
+
+        # Crossing genes
+        for i in range(len(parent1.genome)):
+            if(randint(0,1) == 1):
+                child.genome.append(parent1.genome[i])
+            else:
+                child.genome.append(parent2.genome[i])
+
+            # Mutate child gene with propability MUTATION_RATE in percent
+            if(randint(0,100) < MUTATION_RATE):
+                child.genome[i] = bin(randint(0,255))[2:].zfill(8)
+
+        # Adding child to new generation
+        new_generation.append(child)
+
+    '''for i in range(N_IN_GENERATION - N_ELITES - NEW_ENTITIES_COUNT):
         parent1 = parents[randint(0,N_PARENTS-1)]
         parent2 = parents[randint(0,N_PARENTS-1)]
         child = Entity()
@@ -269,12 +333,15 @@ def crossGeneration(old_generation):
                 child.genome[i] = bin(randint(0,255))[2:].zfill(8)
 
         #print("Crossing: ",parent1.fitness,"+",parent2.fitness)
-        new_generation.append(child)
+        new_generation.append(child)'''
 
     return new_generation
 
 def spawn():
+
     new_entities = []
+
+    # Creating new entities
     for i in range(NEW_ENTITIES_COUNT):
         new_entity = Entity()
         new_entity.fitness = 0
@@ -290,6 +357,7 @@ def spawn():
         new_entities.append(new_entity)
     return new_entities
 
+# Declaring variables for statistics
 gen_number = 0
 curr_best_fitness = 0
 new_gen_best_fitness = 0
@@ -305,30 +373,36 @@ def newGeneration():
 
     gen_number += 1
 
+    # Creating new generation
     if(gen_number != 1):
         new_generation = pickElites(generation)
         new_children = (crossGeneration(generation))
 
+        # Adding new children to new generation
         spawned_entities = spawn()
         generation = new_generation
 
+        # Extending generation with new entities
         generation.extend(new_children)
         generation.extend(spawned_entities)
         #print("Počet jedincov v generácii: ",len(generation))
 
-
+    # Creating new empty entity
     best_entity = Entity()
     best_entity.genome = []
     best_entity.fitness = 0
     best_entity.prints = []
 
+    # Calculating best entity in generation
     for entity in generation:
+        # Main cycle of virtual machine and rating
         VM(entity)
         rateEntity(entity)
         #print("Jedinec:",i,"Fitness:", entity.fitness)
         if(entity.fitness > best_entity.fitness):
             best_entity = entity
-            if(best_entity.fitness == len(treasures)):
+            if( math.floor(best_entity.fitness) == len(treasures)):
+                # Winning entity found
                 print(str(gen_number) + ". generácia")
                 print("Best entity fitness:", best_entity.fitness)
                 print("WINNER")
@@ -339,6 +413,8 @@ for i in range(MAX_GENERATIONS):
     if(i % 100 == 0):
         print(str(gen_number) + ". generácia")
     if(best_entity.fitness > curr_best_fitness):
+
+        # Updating statistics
             curr_best_fitness = best_entity.fitness
 
             print(str(gen_number) + ". generácia")
