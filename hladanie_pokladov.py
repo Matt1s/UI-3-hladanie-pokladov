@@ -106,21 +106,21 @@ def VM(entity):
         instruction = entity.genome[i][:2]
         if(instruction == '00'):
             # Increment
-            if(int(entity.genome[i]) == 255):
+            if(int(entity.genome[i]) == 15):
                 entity.genome[i] = '00000000'
                 print("Increment overflow!")
             else:
                 entity.genome[i] = bin(int(entity.genome[i],2) + 1)[2:].zfill(8)
 
-        if(instruction == '00'):
+        if(instruction == '01'):
             # Decrement
-            if(bin(int(entity.genome[i],2)) == 0):
-                entity.genome[i] = '11111111'
+            if(int(entity.genome[i]) == 64):
+                entity.genome[i] = '01111111'
                 print("Decrement overflow!")
             else:
                 entity.genome[i] = bin(int(entity.genome[i],2) - 1)[2:].zfill(8)
                 
-        if(instruction == '01'):
+        if(instruction == '10'):
             # Get last 6 characters from variable gene
             jump_gene = int(entity.genome[i][-6:])
             i = jump_gene
@@ -201,6 +201,7 @@ def rateEntity(entity):
         if(not movePlayer(move)):
             return False
         checkTreasure(entity)
+
     if(len(found_treasures) == len(treasures)):
         # This entity is the winner
         return True
@@ -225,6 +226,10 @@ for count in range(N_IN_GENERATION):
 
         # Adding genome to entity
         entity.genome.append(gene_bin)
+
+    # Running VM on entity and getting fitness
+    VM(entity)
+    rateEntity(entity)
 
     # Adding entity into generation
     generation.append(entity)
@@ -390,13 +395,14 @@ def newGeneration():
                 return True
 
 for i in range(MAX_GENERATIONS):
-    if(i % 100 == 0):
+    if(i % 100 == 0 and i != 0):
         print(str(gen_number) + ". generácia")
     if(best_entity.fitness > curr_best_fitness):
 
         # Updating statistics
             curr_best_fitness = best_entity.fitness
-
+            
+            print("-------------------------------------")
             print(str(gen_number) + ". generácia")
             print("Best entity fitness:", best_entity.fitness)
             print("Best entity moves:",best_entity.prints)
