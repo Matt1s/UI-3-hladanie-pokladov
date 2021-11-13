@@ -80,7 +80,6 @@ class Entity():
         self.genome = []
         self.fitness = 0
         self.prints = []
-
     def addDirection(self,bits):
         direction = ""
         if(bits == '00'):
@@ -106,22 +105,21 @@ def VM(entity):
         instruction = entity.genome[i][:2]
         if(instruction == '00'):
             # Increment
-            if(int(entity.genome[i]) == 15):
+            if(int(entity.genome[i]) == 255):
                 entity.genome[i] = '00000000'
-                print("Increment overflow!")
             else:
                 entity.genome[i] = bin(int(entity.genome[i],2) + 1)[2:].zfill(8)
 
         if(instruction == '01'):
             # Decrement
-            if(int(entity.genome[i]) == 64):
-                entity.genome[i] = '01111111'
-                print("Decrement overflow!")
+            if(int(entity.genome[i]) == 0):
+                entity.genome[i] = '11111111'
             else:
                 entity.genome[i] = bin(int(entity.genome[i],2) - 1)[2:].zfill(8)
                 
         if(instruction == '10'):
             # Get last 6 characters from variable gene
+
             jump_gene = int(entity.genome[i][-6:])
             i = jump_gene
             break

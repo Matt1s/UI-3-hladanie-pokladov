@@ -107,7 +107,7 @@ Pre správnu funkčnosť som použil externé knižnice - random, time a math.
 
 Každá \textbf{entita} (jedinec) obsahuje svoj \textbf{genóm} (zoznam génom), \textbf{fitness} (miera sily/úspešnosti jedinca) a \textbf{prints} (pohyb/výpis).
 
-Object jedinca obsahuje aj funkciu vykonania pohybu po mriežke, k čomu sa dostaneme neskôr v dokumentácii.
+Objekt jedinca obsahuje aj funkciu vykonania pohybu po mriežke, k čomu sa dostaneme neskôr v dokumentácii.
 
 \section{Generovanie prvej generácie}
 
@@ -127,7 +127,12 @@ Vytvorím si objekt \textbf{jedinca}. Tomuto jedincovi následne \textbf{vytvár
 \item{Takto vytvoreného jedinca pridávam do 1. generácie.}
 \end{itemize}
 
-Následne spúštam funkciu virtuálneho stroja nad týmto jedincov a hneď potom daného jedinca ohodnotím a pridám mu tak fitness. - Viac o tejto časti je opísané v ďalšej sekcii.
+\begin{figure}[h]
+\centerline{\includegraphics[scale=0.6]{./assets/jedinec.png}} 
+\caption{Zloženie jedinca}
+\end{figure}
+
+Následne spúšťam funkciu virtuálneho stroja nad týmto jedincom a hneď potom daného jedinca ohodnotím a pridám mu tak fitness. - Viac o tejto časti je opísané v ďalšej sekcii.
 
 Tento postup opakujem \textbf{100 krát} (počet jedincov v generácii).
 
@@ -159,15 +164,15 @@ Funkciu virtuálneho stroja potrebuje jedinca ako parameter.
 
 Následne vykonáva akcie nad každým génom z genómu jedinca a tento gén modifikuje.
 
-Ak sa na prvých 2 bitov genómu vyskytuje '00', vykoná inkrementácia adresy génu.
+Ak sa na prvých 2 bitov genómu vyskytuje '00', vykoná sa \textbf{inkrementácia} adresy génu.
 To znamená, že ak bolo v géne zapísané '001011', tak sa tento gén prepíše na '001100'.
 
-Pri bitoch '01' - inštrukcia dekrementácie, funguje prepisovanie analogicky, akurát opačným smerom, teda odpočítavame.
+Pri bitoch '01' - inštrukcia \textbf{dekrementácie}, funguje prepisovanie analogicky, akurát opačným smerom, teda odpočítavame.
 
-Zaujímava je funkcia JUMP ('10'), v pri tejto funkcii daný gén ignorujeme skáčeme na gén, ktorý je zapísaný v adresovej časti JUMP gény.
-
-Poslednou funkciou je výpis ('11'), ktorá vykonáva funkciu addDirection v objekte jedinca, teda mu pridáva ďalší krok, ktorý hľadač vykoná.
-Smer pohybu jedinca je určený poslednými 2 bitmi génu. 
+Zaujímava je funkcia \textbf{JUMP} ('10'), v pri tejto funkcii daný gén ignorujeme a skáčeme na gén, ktorý je zapísaný v adresovej časti JUMP génu.
+	
+Poslednou funkciou je \textbf{výpis} ('11'), ktorá vykonáva funkciu \textbf{addDirection} v objekte jedinca, teda mu pridáva ďalší krok, ktorý hľadač vykoná.
+\textbf{Smer pohybu jedinca je určený poslednými 2 bitmi génu}. 
 
 \begin{lstlisting}
     def addDirection(self,bits):
@@ -187,37 +192,42 @@ Ak by sa mal tento virtuálny stroj zacykliť, máme na to podmienku, že ak str
 
 \section{Hodnotenie jedinca}
 
-Na hodnotenie jedinca slúži funkcia rateEntity. Táto funkcia zoberie už existujúci zoznam výpisov/pohybov jedinca, ktorý predtým vygeneroval virtuálny stroj.
+Na hodnotenie jedinca slúži funkcia \textbf{rateEntity}. Táto funkcia zoberie už existujúci zoznam výpisov/pohybov jedinca, ktorý predtým vygeneroval virtuálny stroj.
 
 Následne prechádza každý z pohybov a zisťuje, či je tento pohyb možný (teda či náhodou hľadač nevybočil z mriežky).
 Ak je táto podmienka splnená, vykoná sa pohyb v danom smere.
-Po vykonaní tohto pohybu sledujeme, či sa daný jedinec nenachádza na mieste kde je poklad. Ak áno, tento poklad vyhlasujeme za nájdený aby ho hľadač nehľadal znovu a zvyšujeme mu jeho fitness o 1 bod. Pokiaľ hľadač nenašiel všetky poklady, resetujeme zoznam pokladov na pôvodné súradnice. Fitness ale už ostáva uložený.
+Po vykonaní tohto pohybu \textbf{sledujeme, či sa daný jedinec nenachádza na mieste kde je poklad}. Ak \textbf{áno}, tento poklad vyhlasujeme za nájdený aby ho hľadač nehľadal znovu a \textbf{zvyšujeme mu jeho fitness o 1 bod}. Pokiaľ hľadač nenašiel všetky poklady, resetujeme zoznam pokladov na pôvodné súradnice. Fitness ale už ostáva uložený.
 
 \section{Evolučný algoritmus}
 
 Pri generovaní každej ďalšej generácie využívam rovnaký postup.
 
-\begin{itemize}
+\begin{enumerate}
 \item{Nakopírujem najlepších X jedincov do novej generácie}
 \item{Krížim Y nádejných jedincov z predošlej generácie a pridávam ich do novej generácie}
 \item{Vytvorím Z úplne nových, náhodných jedincov}
 \item{Nad každým jedincom z generácie spúšťam virtuálny stroj}
 \item{Hodnotím každého jedinca}
 \item{Ak som nenašiel všetky poklady, opakujem tento postup}
-\end{itemize}
+\end{enumerate}
 
 \subsection{Elitarizmus}
 
 Pri mojom programe využívam elitarizmus, nakoľko som s ním dosiahol optimálnejšie výsledky.
 Elitarizmus spočíva iba v tom, že nakopíruje najlepších jedincov zo starej generácie do novej generácie bezo zmeny.
 
+\begin{figure}[h]
+\centerline{\includegraphics[scale=0.7]{./assets/generacia.png}} 
+\caption{Zloženie generácie}
+\end{figure}
+
 \subsection{Výber rodičov a turnajový systém}
 Na začiatku kríženia jedincov si vyberiem rodičov. To je N najlepších jedincov z predošlej generácie.
 Následne podľa konfigurácie v úvode programu dopĺnam počet jedincov krížením.
 
 Výber rodičov prebieha turnajovým systémom, t.j.vyberiem 4 náhodným rodičov a vytvorím "pavúkový" eliminačný systém turnaja.
-V každom súboji nádejných rodičov sa porovnáva fitness - ten lepší postupuje do ďalšieho kola turnaja.
-Víťaz tohto turnaja sa následne stáva rodičom.
+V každom súboji nádejných rodičov sa porovnáva fitness - ten lepší \textbf{postupuje} do ďalšieho kola turnaja.
+\textbf{Víťaz tohto turnaja sa následne stáva rodičom.}
 
 Tento turnaj opakujeme ešte druhý krát, kedže rodičia musia byť dvaja.
 
@@ -228,13 +238,13 @@ Keď toto opakovanie skončí, mám vytvoreného nového jedinca s celým genón
 \subsection{Mutovanie jedincov}
 
 Jedinec, ktorý bol vygenerovaný krížením má šancu mutovať (2\% alebo podľa konfigurácie pri každom géne).
-Znamená to, že prechádzam genónom jedinca (64 génov) a pri každom genóme je šanca, že daní gén kompletne zmutuje - vytvorí sa nový gén.
+Znamená to, že prechádzam genónom jedinca (64 génov) a pri každom genóme je šanca, že daní gén\textbf{ kompletne} zmutuje - \textbf{vytvorí sa nový gén}.
 
 
 
 \section{Vývoj fitness}
 
-Hodnota fitness u mňa spočíva iba v počte nájdených truhlíc. Mám implementované vylepšovanie fitness aj na základe počtu krokov, ale výsledky mám pri použití počtu krokov horšie (z mne neznámeho dôvodu :( ).
+Hodnota fitness u mňa spočíva\textbf{ iba v počte nájdených truhlíc}. Mám implementované vylepšovanie fitness aj na základe počtu krokov, ale výsledky mám pri použití počtu krokov horšie (z mne neznámeho dôvodu :( ).
 
 
 
@@ -246,6 +256,11 @@ Testovanie som realizoval na notebooku s procesorom i5-7300HQ pri frekvencii pro
 
 Ako môžete vidieť na testovaní vzorového riešenia, výsledky neboli úplne konštantné.
 Správne riešenia som našiel v 7 z 10 prípadoch, ak som generoval menej ako 10 000 generácií.
+
+\medskip 
+
+Pri výpise riešenia uvádzam pomocou akých krokov sa k riešeniu podarilo dostať pomocou vypísania jednotlivých krokov v zozname.
+
 Najrýchlejšie mi algoritmus pracoval týchto nastaveniach:
 
 \begin{itemize}
@@ -256,13 +271,29 @@ Najrýchlejšie mi algoritmus pracoval týchto nastaveniach:
 \item{Turnajový systém bol využitý}
 \end{itemize}
 
-\medskip 
-
-Pri výpise riešenia uvádzam pomocou akých krokov sa k riešeniu podarilo dostať pomocou vypísania jednotlivých krokov v zozname.
-
 \subsection{Porovnanie parametrov a spôsobov selekcie}
 
-Výsledky testovania môžete nájsť na konci tohto dokumentu.  
+Výsledky testov môžete nájsť na konci tohto dokumentu.
+
+\begin{figure}[h]
+\centerline{\includegraphics[scale=0.7]{./assets/config1.png}} 
+\caption{Výsledky testovania bez turnajového typu selekciu a bez náhodného generovania jedincov.}
+\end{figure}
+
+\begin{figure}[h]
+\centerline{\includegraphics[scale=0.7]{./assets/config2.png}} 
+\caption{Najlepšie výsledky - Použitie turnajového typu selekcie a generovanie náhodných jedincov. Vyššia miera elitarizmu (5\%) }
+\end{figure}
+
+\begin{figure}[h]
+\centerline{\includegraphics[scale=0.7]{./assets/config3.png}} 
+\caption{Použitie turnajového typu selekcie a generovanie náhodných jedincov. Nižšia miera elitarizmu (10\%)}
+\end{figure}
+
+\begin{figure}[h]
+\centerline{\includegraphics[scale=0.7]{./assets/config4.png}} 
+\caption{Použitie turnajového typu selekcie a generovanie náhodných jedincov. Nižšia miera elitarizmu (5\%) }
+\end{figure}
 
 \section{Možné vylepšenia}
 Určite by pomohlo, ak by sa mi podarilo lepšie implementovať zlepšovanie fitness na základe vykonaného počtu krokov jedinca. 
